@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#101412">
+<meta name="description" content="Teste uma simulação do atendimento da DM Garage fora do horário comercial.">
+<title>DM Garage | Demo de atendimento</title>
+<style>
+:root{color-scheme:dark;--bg:#101412;--panel:#171e1a;--line:#2d3a32;--ink:#f1f6f2;--muted:#a9b8ae;--green:#b8f788;--bubble:#243b2c}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(ellipse at 76% 17%,#26362b 0,transparent 44%),var(--bg);color:var(--ink);font:16px/1.55 'Inter',system-ui,sans-serif;min-height:100vh}
+button,input{font:inherit}
+button{cursor:pointer}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
+.wrap{width:min(1136px,calc(100% - 64px));margin:auto}
+.mast{display:flex;justify-content:space-between;align-items:center;padding:24px 0;border-bottom:1px solid var(--line)}
+.brand{font-size:18px;font-weight:850;letter-spacing:-.06em}
+.brand span{color:var(--green)}
+.mast small{color:var(--muted);font-size:12px}
+main{display:grid;grid-template-columns:1fr 1.15fr;align-items:center;gap:clamp(32px,6vw,86px);padding:54px 0}
+.kicker{margin:0 0 16px;color:var(--green);font-size:12px;font-weight:750;letter-spacing:.15em;text-transform:uppercase}
+h1{margin:0;max-width:9em;font-size:clamp(42px,5.4vw,74px);letter-spacing:-.075em;line-height:.98;text-wrap:balance}
+.intro{margin:22px 0 24px;max-width:38ch;color:var(--muted);font-size:17px}
+.scenarios{display:flex;gap:8px;flex-wrap:wrap}
+.scenario,.reset,.quick{background:transparent;border:1px solid #496253;border-radius:999px;color:var(--ink);padding:8px 12px;font-size:13px}
+.scenario:hover,.reset:hover,.quick:hover{border-color:var(--green);color:var(--green)}
+.scenario:disabled{opacity:.45;cursor:default}
+.info{margin-top:24px;border-top:1px solid var(--line);padding-top:18px}
+.info h2{font-size:14px;margin:0 0 5px}
+.info p{margin:0;color:var(--muted);font-size:13px}
+.chat{background:var(--panel);border:1px solid #3b4b40;border-radius:22px;overflow:hidden;box-shadow:0 20px 60px #0005;min-width:0}
+.chat-head{display:flex;align-items:center;gap:12px;padding:15px 17px;border-bottom:1px solid var(--line)}
+.avatar{display:grid;place-items:center;width:42px;height:42px;flex:none;background:var(--green);color:#152216;border-radius:13px;font-weight:900;letter-spacing:-.06em}
+.name{font-size:15px;font-weight:750}
+.status{color:var(--muted);font-size:12px}
+.reset{margin-left:auto;white-space:nowrap}
+.thread{height:350px;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:9px;background:#111813;background-image:radial-gradient(#92b49c22 0.8px,transparent 1px);background-size:16px 16px}
+.date{align-self:center;margin:0 0 4px;background:#202b23;color:#c5d3c8;padding:3px 10px;border-radius:20px;font-size:11px;text-align:center}
+.msg{width:fit-content;max-width:90%;margin:0;padding:9px 12px;border-radius:4px 13px 13px 13px;font-size:14px;overflow-wrap:anywhere;background:#26312a;white-space:pre-wrap}
+.user{align-self:flex-end;background:var(--bubble);border-radius:13px 4px 13px 13px}
+.summary{margin:0;width:min(100%,365px);background:#1e2a22;border:1px solid #4c6753;border-radius:12px;padding:13px;font-size:13px}
+.summary strong{color:var(--green)}
+.summary dl{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;margin:8px 0 0}
+.summary dt{color:var(--muted)}
+.summary dd{margin:0;overflow-wrap:anywhere}
+.controls{border-top:1px solid var(--line);padding:12px}
+.suggestions{min-height:30px;margin-bottom:8px;display:flex;flex-wrap:wrap;gap:6px}
+.quick{padding:4px 10px;color:var(--green);text-align:left}
+form{display:flex;gap:8px}
+input{width:100%;min-width:0;border:1px solid #435348;border-radius:9px;background:#111813;color:var(--ink);padding:10px 12px}
+input::placeholder{color:var(--muted)}
+.send{background:var(--green);color:#132115;border:0;border-radius:9px;padding:0 14px;font-size:14px;font-weight:750}
+.send:hover{background:#d1ffb1}
+.send:disabled{opacity:.45;cursor:default}
+.note{margin:9px 0 0;color:var(--muted);font-size:11px}
+@media(max-width:760px){.wrap{width:calc(100% - 32px)}.mast{padding:16px 0}main{grid-template-columns:1fr;padding:25px 0;gap:22px}.intro{margin:14px 0 15px;font-size:15px}.info{display:none}h1{max-width:100%}.kicker{margin-bottom:9px}.thread{height:300px}}
+@media(max-width:380px){.status{font-size:11px}.chat-head{gap:8px;padding:12px}.reset{padding:6px 8px}.avatar{width:34px;height:34px}}
+</style>
+</head>
+<body>
+<header class="wrap mast"><div class="brand">lynk<span>.</span></div><small>Demo para a DM Garage</small></header>
+<main class="wrap">
+<section aria-labelledby="title">
+<p class="kicker">Atendimento fora do horário</p>
+<h1 id="title">O cliente chama. A oficina já sabe o que ele precisa.</h1>
+<p class="intro">Teste como o assistente faria o primeiro atendimento pelo WhatsApp e deixaria o pedido pronto para a equipe retomar.</p>
+<div class="scenarios" id="scenarios" aria-label="Começar com um exemplo"></div>
+<div class="info"><h2>A equipe recebe um resumo</h2><p>Modelo e ano do carro, relato do cliente e horário de preferência para a oficina confirmar.</p></div>
+</section>
+<section class="chat" aria-label="Simulador de atendimento">
+<header class="chat-head"><div class="avatar" aria-hidden="true">DM</div><div><div class="name">DM Garage</div><div class="status">Assistente virtual · Simulação</div></div><button class="reset" id="reset" type="button">Reiniciar</button></header>
+<div class="thread" id="thread" role="log" aria-label="Mensagens do atendimento"></div>
+<div class="controls">
+<div class="suggestions" id="suggestions" aria-label="Resposta de exemplo"></div>
+<form id="form"><input id="message" aria-label="Sua mensagem" autocomplete="off" maxlength="240" placeholder="Digite sua mensagem…"><button class="send" id="send">Enviar</button></form>
+<p class="note">Conversa simulada. Pedidos de agendamento dependem da confirmação da oficina.</p>
+</div>
+</section>
+</main>
+<script>
+const scenarios = [
+  {label:'Barulho ao frear', message:'Oi! Meu carro faz um barulho quando eu freio. Vocês conseguem olhar?', vehicle:'Onix 2020', detail:'É um chiado que aparece quando freio devagar.'},
+  {label:'Pedir uma revisão', message:'Boa noite! Queria agendar uma revisão.', vehicle:'HB20 2021', detail:'Quero revisar o carro antes de viajar.'}
+];
+const thread = document.querySelector('#thread');
+const input = document.querySelector('#message');
+const send = document.querySelector('#send');
+const suggestions = document.querySelector('#suggestions');
+const scenarioBar = document.querySelector('#scenarios');
+let step, request, example;
+function button(label, className, action) {
+  const element = document.createElement('button');
+  element.type = 'button';
+  element.textContent = label;
+  element.className = className;
+  element.addEventListener('click', action);
+  return element;
+}
+function addMessage(message, sender = 'assistant') {
+  const element = document.createElement('p');
+  element.className = 'msg ' + sender;
+  element.textContent = message;
+  thread.append(element);
+  thread.scrollTop = thread.scrollHeight;
+}
+function suggest(message) {
+  suggestions.replaceChildren();
+  if (message) suggestions.append(button(message, 'quick', () => reply(message)));
+}
+function showSummary() {
+  const panel = document.createElement('div');
+  panel.className = 'summary';
+  const title = document.createElement('strong');
+  title.textContent = 'Resumo para a oficina';
+  const list = document.createElement('dl');
+  for (const [label, value] of Object.entries(request)) {
+    const term = document.createElement('dt');
+    const entry = document.createElement('dd');
+    term.textContent = label;
+    entry.textContent = value;
+    list.append(term, entry);
+  }
+  panel.append(title, list);
+  thread.append(panel);
+  thread.scrollTop = thread.scrollHeight;
+}
+function reply(message) {
+  const value = message.trim();
+  if (!value || step === 4) return;
+  addMessage(value, 'user');
+  input.value = '';
+  switch (step) {
+    case 0:
+      request.Pedido = value;
+      addMessage('Posso adiantar seu atendimento por aqui. Qual é o modelo e o ano do carro?');
+      suggest(example.vehicle);
+      break;
+    case 1:
+      if (!/\p{L}/u.test(value) || !/\b(?:19|20)\d{2}\b/.test(value)) {
+        addMessage('Me manda o modelo e o ano juntos, por exemplo “' + example.vehicle + '”.');
+        return;
+      }
+      request.Carro = value;
+      addMessage('Pode me contar um pouco mais sobre o que você gostaria que a oficina verificasse?');
+      suggest(example.detail);
+      break;
+    case 2:
+      request.Detalhes = value;
+      addMessage('Anotei. Qual dia e horário seriam melhores para você levar o carro?');
+      suggest('Amanhã às 9h');
+      break;
+    case 3:
+      request.Preferência = value;
+      addMessage('Pronto! A equipe vai verificar a disponibilidade e confirmar o horário com você quando a oficina abrir.');
+      suggest(null);
+      showSummary();
+      input.disabled = true;
+      send.disabled = true;
+      input.placeholder = 'Atendimento simulado concluído';
+      break;
+  }
+  step++;
+}
+function resetChat(selected = scenarios[0]) {
+  step = 0;
+  request = {};
+  example = selected;
+  thread.replaceChildren();
+  const date = document.createElement('p');
+  date.className = 'date';
+  date.textContent = 'Hoje, 22h · Exemplo de atendimento';
+  thread.append(date);
+  input.value = '';
+  input.disabled = false;
+  send.disabled = false;
+  input.placeholder = 'Digite sua mensagem…';
+  addMessage('Oi! Aqui é o assistente virtual da DM Garage. Como posso ajudar?');
+  suggest(example.message);
+}
+for (const scenario of scenarios) {
+  scenarioBar.append(button(scenario.label, 'scenario', () => {
+    resetChat(scenario);
+    reply(scenario.message);
+    if (matchMedia('(max-width: 760px)').matches) thread.closest('.chat').scrollIntoView({block:'nearest'});
+  }));
+}
+document.querySelector('#reset').addEventListener('click', () => resetChat());
+document.querySelector('#form').addEventListener('submit', event => {
+  event.preventDefault();
+  reply(input.value);
+});
+resetChat();
+</script>
+</body>
+</html>
